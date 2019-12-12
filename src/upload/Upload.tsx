@@ -34,7 +34,7 @@ class Upload extends Component<Props, State> {
 
     // add type defs to function props to get TS support inside function bodies,
     // and not just where functions are passed as props into Dropzone
-    getUploadParams: IDropzoneProps['getUploadParams'] = () => ({ url: 'https://httpbin.org/post' });
+    getUploadParams: IDropzoneProps['getUploadParams'] = () => ({ url: 'http://localhost:3000/generate' });
 
     // called every time a file's `status` changes
     handleChangeStatus: IDropzoneProps['onChangeStatus'] = ({ meta, file }, status) => {
@@ -57,8 +57,9 @@ class Upload extends Component<Props, State> {
 
         return (
             <Dropzone
+                multiple={false}
+                maxFiles={1}
                 getUploadParams={this.getUploadParams}
-                onChangeStatus={this.handleChangeStatus}
                 LayoutComponent={Layout}
                 onSubmit={this.handleSubmit}
                 classNames={{ inputLabelWithFiles: defaultClassNames.inputLabel }}
