@@ -11,12 +11,16 @@ type State = { redirectToReferrer: boolean }
 // add type defs to custom LayoutComponent prop to easily inspect props passed to injected components
 const Layout = ({ input, previews, submitButton, dropzoneProps, files, extra: { maxFiles } }: ILayoutProps) => {
     return (
-        <div>
-            {previews}
+        <div className="card m-lg-5">
+            <div className="card-body">
+                <form>
+                    {previews}
 
-            <div {...dropzoneProps}>{files.length < maxFiles && input}</div>
+                    <div {...dropzoneProps}>{files.length < maxFiles && input}</div>
 
-            {files.length > 0 && submitButton}
+                    {files.length > 0 && submitButton}
+                </form>
+            </div>
         </div>
     );
 };
