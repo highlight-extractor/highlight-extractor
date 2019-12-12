@@ -1,10 +1,17 @@
-import {Component, CSSProperties} from "react";
+import {Component, CSSProperties, Dispatch} from "react";
 import React from "react";
-import { MDBContainer, MDBRow, MDBCol } from "mdbreact";
+import {MDBContainer, MDBRow, MDBCol} from "mdbreact";
+import {withRouter} from 'react-router-dom';
+import {Prediction} from "../actions";
+import {connect} from "react-redux";
 
-type Props = {}
+type Props = {
+    predictions: Prediction[]
+}
 
-type State = { images: string[] }
+type State = {
+    predictions: Prediction[]
+}
 
 const defaults: CSSProperties = {
     height: "auto",
@@ -16,33 +23,33 @@ const defaults: CSSProperties = {
 class Highlights extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
-        this.state = {
-            images: [
-                "inside.png",
-                "outside.png"
-            ]
-        };
+        // this.state = {...props};
     }
 
-    renderImage(imageUrl: string): React.ReactNode {
-        console.log(imageUrl);
+    renderImage(prediction: Prediction): React.ReactNode {
+        console.log(prediction);
         return (
             <MDBCol md="4">
-                <img src={imageUrl} className="img-fluid hoverable" alt="logo" style={ defaults } />
+                <img src={prediction.image_id} className="img-fluid hoverable" alt="logo" style={defaults}/>
             </MDBCol>
         );
     }
 
     render(): React.ReactNode {
-        console.log(this.state);
+        const {predictions} = this.props;
+        console.log(predictions);
         return (
             <MDBContainer className="mt-5">
                 <MDBRow>
-                    {this.state.images.map(imageUrl =>  this.renderImage(imageUrl))}
+                    {predictions.map(prediction => this.renderImage(prediction))}
                 </MDBRow>
             </MDBContainer>
         );
     }
 }
 
-export default Highlights;
+const mapStateToProps = (state: State) => ({
+    predictions: state.predictions
+});
+
+export default withRouter(connect(mapStateToProps)(Highlights));

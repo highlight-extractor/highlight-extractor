@@ -1,15 +1,19 @@
 import 'react-dropzone-uploader/dist/styles.css';
-import Dropzone, { IDropzoneProps, ILayoutProps, defaultClassNames } from 'react-dropzone-uploader';
-import React, {Component} from 'react';
-import { Redirect } from 'react-router-dom';
+import Dropzone, {IDropzoneProps, ILayoutProps, defaultClassNames} from 'react-dropzone-uploader';
+import React, {Component, Dispatch} from 'react';
+import {connect} from 'react-redux';
+import {Redirect} from 'react-router-dom';
+import {uploadVideo} from "../actions";
 
 
-type Props = {}
+type Props = {
+    postUploadVideo: any
+}
 
-type State = { redirectToReferrer: boolean }
+type State = { redirectToReferrer: boolean, predictions: any }
 
 // add type defs to custom LayoutComponent prop to easily inspect props passed to injected components
-const Layout = ({ input, previews, submitButton, dropzoneProps, files, extra: { maxFiles } }: ILayoutProps) => {
+const Layout = ({input, previews, submitButton, dropzoneProps, files, extra: {maxFiles}}: ILayoutProps) => {
     return (
         <div className="card m-lg-5">
             <div className="card-body">
@@ -29,24 +33,21 @@ class Upload extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        this.state = {redirectToReferrer: false};
+        this.state = {redirectToReferrer: false, predictions: []};
     }
 
-    // add type defs to function props to get TS support inside function bodies,
-    // and not just where functions are passed as props into Dropzone
-    getUploadParams: IDropzoneProps['getUploadParams'] = () => ({ url: 'http://localhost:3000/generate' });
-
     // called every time a file's `status` changes
-    handleChangeStatus: IDropzoneProps['onChangeStatus'] = ({ meta, file }, status) => {
+    handleChangeStatus: IDropzoneProps['onChangeStatus'] = ({meta, file}, status) => {
         console.log(status, meta, file)
     };
 
     handleSubmit: IDropzoneProps['onSubmit'] = (files, allFiles) => {
-        console.log(files.map(f => f.meta));
         this.setState({
             redirectToReferrer: true
         });
-        allFiles.forEach(f => f.remove())
+        allFiles.forEach(f => f.remove());
+
+        this.props.postUploadVideo(allFiles[0].file);
     };
 
     render(): React.ReactNode {
@@ -59,10 +60,11 @@ class Upload extends Component<Props, State> {
             <Dropzone
                 multiple={false}
                 maxFiles={1}
-                getUploadParams={this.getUploadParams}
+                // getUploadParams={this.getUploadParams}
+                onChangeStatus={this.handleChangeStatus}
                 LayoutComponent={Layout}
                 onSubmit={this.handleSubmit}
-                classNames={{ inputLabelWithFiles: defaultClassNames.inputLabel }}
+                classNames={{inputLabelWithFiles: defaultClassNames.inputLabel}}
                 inputContent="Drop Files (or Click to Add)"
                 accept="video/*"
             />
@@ -70,4 +72,8 @@ class Upload extends Component<Props, State> {
     }
 }
 
-export default Upload;
+const mapDispatchToProps = (dispatch: Dispatch<any>) => ({
+    postUploadVideo: (file: File) => dispatch(uploadVideo(file))
+});
+
+export default connect(null, mapDispatchToProps)(Upload);
