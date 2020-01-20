@@ -2,8 +2,8 @@ import {Component, CSSProperties, Dispatch} from "react";
 import React from "react";
 import {MDBContainer, MDBRow, MDBCol} from "mdbreact";
 import {withRouter} from 'react-router-dom';
-import {Prediction} from "../actions";
 import {connect} from "react-redux";
+import {Prediction} from "../store/commons/uploadCommons";
 
 type Props = {
     predictions: Prediction[]

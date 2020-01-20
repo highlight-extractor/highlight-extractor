@@ -10,11 +10,11 @@ import Highlights from "./highlights/Highlights";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "bootstrap-css-only/css/bootstrap.min.css";
 import "mdbreact/dist/css/mdb.css";
-import reducers from "./reducers";
+import rootReducer from './store/reducers/rootReducer';
 
 const loggerMiddleware = createLogger();
 
-const store = createStore(reducers, applyMiddleware(thunk, loggerMiddleware));
+const store = createStore(rootReducer, applyMiddleware(thunk, loggerMiddleware));
 
 function Index() {
     return <h2>Home</h2>;
