@@ -1,79 +1,152 @@
 import 'react-dropzone-uploader/dist/styles.css';
-import Dropzone, {IDropzoneProps, ILayoutProps, defaultClassNames} from 'react-dropzone-uploader';
-import React, {Component, Dispatch} from 'react';
-import {connect} from 'react-redux';
-import {Redirect} from 'react-router-dom';
-import {uploadVideo} from "../actions";
+import React, { Component, Dispatch } from 'react';
+import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
+import Container from '@material-ui/core/Container';
+import UploadForm from './UploadForm';
+import { UploadActionParams, UploadFormInputState, UploadFormState } from '../store/commons/uploadCommons';
+import {
+    updateFormInputRequest,
+    uploadVideoError,
+    uploadVideoRequest,
+    uploadVideoSuccess,
+} from '../store/actions/uploadActions';
+import { AppState } from '../store/reducers/rootReducer';
 
-
-type Props = {
-    postUploadVideo: any
+interface UploadState extends UploadFormState {
+    redirectToReferrer: boolean;
+    predictions: any;
 }
 
-type State = { redirectToReferrer: boolean, predictions: any }
+interface UploadDispatchProps {
+    updateFormInput: (inputChange: Partial<UploadFormState>) => void;
+    uploadVideo: (uploadData: UploadFormState) => void;
+}
 
-// add type defs to custom LayoutComponent prop to easily inspect props passed to injected components
-const Layout = ({input, previews, submitButton, dropzoneProps, files, extra: {maxFiles}}: ILayoutProps) => {
-    return (
-        <div className="card m-lg-5">
-            <div className="card-body">
-                <form>
-                    {previews}
+type UploadProps = UploadState & UploadDispatchProps;
 
-                    <div {...dropzoneProps}>{files.length < maxFiles && input}</div>
-
-                    {files.length > 0 && submitButton}
-                </form>
-            </div>
-        </div>
-    );
+const updateFormInput = (inputChange: Partial<UploadFormState>) => (dispatch: Dispatch<UploadActionParams>): void => {
+    dispatch(updateFormInputRequest({ inputChange }));
 };
 
-class Upload extends Component<Props, State> {
-    constructor(props: Props) {
-        super(props);
+const uploadVideo = (uploadData: UploadFormState) => (dispatch: Dispatch<UploadActionParams>): void => {
+    dispatch(uploadVideoRequest());
 
-        this.state = {redirectToReferrer: false, predictions: []};
+    const url = `${process.env.REACT_APP_API_ENDPOINT}/generate`;
+    const method = 'POST';
+
+    // return new Promise((resolve, reject) => {
+    const { video, timeFrame, samplingRate, sceneImages, summaryImages } = uploadData;
+    if (video === null) {
+        const err = { error: 'Null video' };
+        dispatch(uploadVideoError(err));
+        // return reject(err);
+    } else {
+        const data = new FormData();
+        data.append('time-frame', (timeFrame || 0).toString());
+        data.append('sampling-rate', (samplingRate || 0).toString());
+        data.append('scene-images', (sceneImages || 0).toString());
+        data.append('summary-images', (summaryImages || 0).toString());
+        data.append('video', video);
+        // ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+        fetch(url, {
+            method: method,
+            body: data,
+            headers: {
+                Accept: 'application/json',
+            },
+        })
+            .then(res => {
+                return res.json();
+            })
+            .then(res => {
+                dispatch(uploadVideoSuccess(res));
+                // return resolve(res);
+            })
+            .catch(err => {
+                dispatch(uploadVideoError(err));
+                // return reject(err);
+            });
+        // });
+    }
+};
+
+class Upload extends Component<UploadProps> {
+    constructor(props: UploadProps) {
+        super(props);
     }
 
     // called every time a file's `status` changes
-    handleChangeStatus: IDropzoneProps['onChangeStatus'] = ({meta, file}, status) => {
-        console.log(status, meta, file)
+    handleFileChange = (files: [File]): void => {
+        // TODO fix the error thrown when the file size is large
+        if (files.length === 1) {
+            this.props.updateFormInput({ video: files[0] });
+        } else {
+            this.props.updateFormInput({ video: null });
+        }
     };
 
-    handleSubmit: IDropzoneProps['onSubmit'] = (files, allFiles) => {
-        this.setState({
-            redirectToReferrer: true
-        });
-        allFiles.forEach(f => f.remove());
+    // ref: https://stackoverflow.com/questions/54493511/form-in-react-and-typescript-with-dry-handle-of-change
+    handleInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+        const { name, value } = event.currentTarget;
+        this.props.updateFormInput({ [name]: Number(value) });
+    };
 
-        this.props.postUploadVideo(allFiles[0].file);
+    handleSubmit = (event: React.FormEvent<HTMLButtonElement>): void => {
+        event.preventDefault();
+        // console.log('submit clicked');
+        const { video, timeFrame, samplingRate, sceneImages, summaryImages } = this.props;
+        const uploadData = {
+            video,
+            timeFrame,
+            samplingRate,
+            sceneImages,
+            summaryImages,
+        };
+        // console.log(uploadData);
+
+        // this.setState({
+        //     redirectToReferrer: true,
+        // });
+
+        this.props.uploadVideo(uploadData);
     };
 
     render(): React.ReactNode {
-        const redirectToReferrer = this.state.redirectToReferrer;
-        if (redirectToReferrer) {
-            return <Redirect to="/highlights"/>
-        }
+        // const redirectToReferrer = this.state.redirectToReferrer;
+        // if (redirectToReferrer) {
+        //     return <Redirect to="/highlights" />;
+        // }
+
+        // console.log('render');
+        const { video, timeFrame, samplingRate, sceneImages, summaryImages } = this.props;
+        const uploadFormProps = {
+            video,
+            timeFrame,
+            samplingRate,
+            sceneImages,
+            summaryImages,
+            onFileChange: this.handleFileChange,
+            onInputChange: this.handleInputChange,
+            onSubmit: this.handleSubmit,
+        };
+        // console.log(uploadData);
 
         return (
-            <Dropzone
-                multiple={false}
-                maxFiles={1}
-                // getUploadParams={this.getUploadParams}
-                onChangeStatus={this.handleChangeStatus}
-                LayoutComponent={Layout}
-                onSubmit={this.handleSubmit}
-                classNames={{inputLabelWithFiles: defaultClassNames.inputLabel}}
-                inputContent="Drop Files (or Click to Add)"
-                accept="video/*"
-            />
+            <Container component="main" maxWidth="xs">
+                <UploadForm {...uploadFormProps} />
+            </Container>
         );
     }
 }
 
+const mapStateToProps = ({ upload }: AppState): UploadFormState => ({ ...upload });
+
+// TODO Remove the any types
 const mapDispatchToProps = (dispatch: Dispatch<any>) => ({
-    postUploadVideo: (file: File) => dispatch(uploadVideo(file))
+    updateFormInput: (inputChange: Partial<UploadFormState>): void => dispatch(updateFormInput(inputChange)),
+    uploadVideo: (uploadData: UploadFormState): void => dispatch(uploadVideo(uploadData)),
 });
 
-export default connect(null, mapDispatchToProps)(Upload);
+// ref: https://github.com/microsoft/TypeScript/issues/25103
+export default connect(mapStateToProps, mapDispatchToProps)(Upload);
