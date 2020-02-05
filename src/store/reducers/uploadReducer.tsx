@@ -1,22 +1,14 @@
-import { UPDATE_FORM_INPUT_REQUEST, UPLOAD_VIDEO_SUCCESS } from '../actions/uploadActions';
-import { UploadActionParams } from '../commons/uploadCommons';
+import { UPLOAD_VIDEO_ERROR, UPLOAD_VIDEO_SUCCESS } from '../actions/uploadActions';
+import { UploadActionParams, UploadState } from '../commons/uploadCommons';
 
-const initialState = {
-    video: null,
-    timeFrame: null,
-    samplingRate: null,
-    sceneImages: null,
-    summaryImages: null,
-    predictions: [],
-    redirectToReferrer: false,
-};
+const initialState = {};
 
-export default (state = initialState, action: UploadActionParams) => {
+export default (state = initialState, action: UploadActionParams): {} | UploadState => {
     switch (action.type) {
-        case UPDATE_FORM_INPUT_REQUEST:
-            return Object.assign({}, state, { ...action.inputChange });
         case UPLOAD_VIDEO_SUCCESS:
-            return Object.assign({}, state, { predictions: action.predictions });
+            return Object.assign({}, state, {});
+        case UPLOAD_VIDEO_ERROR:
+            return Object.assign({}, state, {});
         default:
             return Object.assign({}, state, {});
     }
