@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "^4.8.3",
+    "@material-ui/icons": "^4.9.1",
     "@types/jest": "24.0.19",
     "@types/node": "12.11.1",
     "@types/react": "16.9.9",
@@ -13,28 +14,26 @@
     "@types/redux-promise": "^0.5.28",
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
-    "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-prettier": "^3.1.2",
     "material-ui-dropzone": "^2.4.7",
-    "mdbreact": "^4.22.0",
     "prettier": "^1.19.1",
-    "react": "^16.10.2",
-    "react-dom": "^16.10.2",
-    "react-dropzone-uploader": "^2.10.2",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
     "react-redux": "^7.1.3",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "^3.3.0",
+    "redux": "^4.0.5",
     "redux-logger": "latest",
     "redux-promise": "latest",
-    "redux-thunk": "latest",
-    "typescript": "3.6.4"
+    "redux-thunk": "latest"
   },
+  "main": "index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "bundle": "webpack",
+    "test": "echo \"Warning: No test specified\" && exit 0",
+    "start": "webpack-dev-server --port 3000 --hot --env.ENVIRONMENT=development --env.NODE_ENV=local",
+    "build": "webpack --env.ENVIRONMENT=production --env.NODE_ENV=local",
+    "check-types": "tsc"
   },
   "proxy": "http://127.0.0.1:5000/",
   "eslintConfig": {
@@ -53,6 +52,26 @@
     ]
   },
   "devDependencies": {
-    "@types/react-redux": "^7.1.5"
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/preset-react": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
+    "@types/react-redux": "^7.1.5",
+    "babel-loader": "^8.0.6",
+    "babel-polyfill": "^6.26.0",
+    "css-loader": "^3.4.2",
+    "dotenv": "^8.2.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-react": "^7.18.3",
+    "html-webpack-plugin": "^3.2.0",
+    "source-map-loader": "^0.2.4",
+    "style-loader": "^1.1.3",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.2"
   }
 }

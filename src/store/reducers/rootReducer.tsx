@@ -1,13 +1,17 @@
 import { combineReducers } from 'redux';
+import { HighlightsState } from '../commons/highlightCommons';
+import { UploadState } from '../commons/uploadCommons';
+import predictionsReducer from './predictionsReducer';
 import uploadReducer from './uploadReducer';
-import { UploadFormState } from '../commons/uploadCommons';
 
 export interface AppState {
-    upload: UploadFormState;
+    upload: UploadState;
+    highlights: HighlightsState;
 }
 
 const rootReducer = combineReducers({
     upload: uploadReducer,
+    highlights: predictionsReducer,
 });
 
 export default rootReducer;

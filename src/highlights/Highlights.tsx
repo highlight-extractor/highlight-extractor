@@ -1,55 +1,72 @@
-import {Component, CSSProperties, Dispatch} from "react";
-import React from "react";
-import {MDBContainer, MDBRow, MDBCol} from "mdbreact";
-import {withRouter} from 'react-router-dom';
-import {connect} from "react-redux";
-import {Prediction} from "../store/commons/uploadCommons";
+import React, { useState } from 'react';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
+import { GridList } from '@material-ui/core';
+import Container from '@material-ui/core/Container';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
+import { useStyles } from '../muiStyles';
+import { VideoHighlight, HighlightsState } from '../store/commons/highlightCommons';
+import { AppState } from '../store/reducers/rootReducer';
+import Highlight from './Highlight';
 
-type Props = {
-    predictions: Prediction[]
-}
+const Highlights = ({ predictions }: HighlightsState): React.ReactElement => {
+    const summaryImages = predictions.length;
+    const highlights = predictions;
+    const [values, setValues] = useState({ summaryImages, highlights });
 
-type State = {
-    predictions: Prediction[]
-}
+    const onInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+        const { value } = event.currentTarget;
+        let hts = predictions;
+        hts.sort((a: VideoHighlight, b: VideoHighlight) => (a.meanScorePrediction < b.meanScorePrediction ? 1 : -1));
+        hts = hts.slice(0, Number(value));
+        hts.sort((a: VideoHighlight, b: VideoHighlight) => (a.timestamp > b.timestamp ? 1 : -1));
+        setValues({ ...values, summaryImages: Number(value), highlights: hts });
+    };
 
-const defaults: CSSProperties = {
-    height: "auto",
-    width: "auto",
-    maxHeight: 350,
-    maxWidth: 350
+    const classes = useStyles();
+    const summaryImagesLimit = predictions.length;
+    const helpText = `number of images to display (0 - ${summaryImagesLimit.toString()})`;
+    return (
+        <Container component="main" maxWidth="md">
+            <div className={classes.root}>
+                <Grid
+                    container
+                    className={classes.gridContainer}
+                    direction="column"
+                    alignItems="center"
+                    justify="center"
+                >
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            id="summaryImages"
+                            label="Summary Images"
+                            name="summaryImages"
+                            type="number"
+                            helperText={helpText}
+                            inputProps={{ min: '0', max: summaryImagesLimit.toString(), step: '1' }}
+                            value={values.summaryImages}
+                            onChange={onInputChange}
+                        />
+                    </Grid>
+                </Grid>
+                <Grid container className={classes.gridContainer} spacing={2}>
+                    <Grid item xs={12}>
+                        <GridList className={classes.gridList}>
+                            {values.highlights.map(highlight => (
+                                <Highlight key={highlight.timestamp} highlight={highlight} />
+                            ))}
+                        </GridList>
+                    </Grid>
+                </Grid>
+            </div>
+        </Container>
+    );
 };
 
-class Highlights extends Component<Props, State> {
-    constructor(props: Props) {
-        super(props);
-        // this.state = {...props};
-    }
-
-    renderImage(prediction: Prediction): React.ReactNode {
-        console.log(prediction);
-        return (
-            <MDBCol md="4">
-                <img src={prediction.image_id} className="img-fluid hoverable" alt="logo" style={defaults}/>
-            </MDBCol>
-        );
-    }
-
-    render(): React.ReactNode {
-        const {predictions} = this.props;
-        console.log(predictions);
-        return (
-            <MDBContainer className="mt-5">
-                <MDBRow>
-                    {predictions.map(prediction => this.renderImage(prediction))}
-                </MDBRow>
-            </MDBContainer>
-        );
-    }
-}
-
-const mapStateToProps = (state: State) => ({
-    predictions: state.predictions
-});
+const mapStateToProps = ({ highlights }: AppState): HighlightsState => {
+    return { ...highlights };
+};
 
 export default withRouter(connect(mapStateToProps)(Highlights));
