@@ -4,7 +4,7 @@ import GridListTileBar from '@material-ui/core/GridListTileBar';
 import IconButton from '@material-ui/core/IconButton';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import { useStyles } from '../muiStyles';
-import { HighlightProps, VideoHighlight } from '../store/commons/highlightCommons';
+import { HighlightProps, VideoHighlight } from '../store/appCommons';
 
 const pad = (num: number, leftSize: number, rightSize = 0): string => {
     let tens = 1;
@@ -27,13 +27,14 @@ const getTitle = ({ meanScorePrediction, timestamp }: VideoHighlight): string =>
     return `[${pad(h / 3600000, 2)}:${pad(m, 2)}:${pad(s, 2)}.${pad(ms, 3)}] ${pad(meanScorePrediction, 1, 2)}`;
 };
 
-const Highlight = ({ key, highlight }: HighlightProps): React.ReactElement => {
+const Highlight = ({ key, width, highlight }: HighlightProps): React.ReactElement => {
     const classes = useStyles();
     const { imageUrl } = highlight;
     const title = getTitle(highlight);
     return (
         <GridListTile
             key={key}
+            style={{ width: `${width}%` }}
             classes={{
                 root: classes.gridListRoot,
                 imgFullHeight: classes.gridListTileImage,
