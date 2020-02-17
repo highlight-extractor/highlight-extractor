@@ -7,6 +7,9 @@ export const useStyles = makeStyles((theme: Theme) =>
             margin: theme.spacing(1),
             backgroundColor: theme.palette.secondary.main,
         },
+        main: {
+            padding: '0px',
+        },
         root: {
             marginTop: theme.spacing(8),
             marginBottom: theme.spacing(8),
@@ -15,6 +18,12 @@ export const useStyles = makeStyles((theme: Theme) =>
             justifyContent: 'space-around',
             overflow: 'hidden',
             backgroundColor: theme.palette.background.paper,
+        },
+        progress: {
+            width: '100%',
+            position: 'fixed',
+            top: '0px',
+            zIndex: 1500,
         },
         paper: {
             marginTop: theme.spacing(8),
@@ -28,7 +37,7 @@ export const useStyles = makeStyles((theme: Theme) =>
             marginTop: theme.spacing(3),
         },
         gridList: {
-            flexWrap: 'nowrap',
+            // flexWrap: 'nowrap',
             // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
             transform: 'translateZ(0)',
         },
@@ -36,6 +45,7 @@ export const useStyles = makeStyles((theme: Theme) =>
             margin: '0px',
         },
         gridListRoot: {
+            margin: 'auto',
             width: '80%',
             padding: '2px',
         },
@@ -46,6 +56,9 @@ export const useStyles = makeStyles((theme: Theme) =>
             height: '100%',
             position: 'relative',
             transform: 'none',
+        },
+        select: {
+            width: '-webkit-fill-available',
         },
         title: {
             color: theme.palette.primary.light,

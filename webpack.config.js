@@ -59,7 +59,7 @@ module.exports = (env = {}) => {
     const modes = ALLOWED_MODES.filter(mode => mode === env.ENVIRONMENT);
     env.ENVIRONMENT = modes.length > 0 ? modes[0] : ALLOWED_MODES[0];
     const ALLOWED_NODE_ENVS = ['local'];
-    const node_envs = ALLOWED_NODE_ENVS.filter(mode => mode === env.NODE_ENV);
+    const node_envs = ALLOWED_NODE_ENVS.filter(node_env => node_env === env.NODE_ENV);
     env.NODE_ENV = node_envs.length > 0 ? node_envs[0] : ALLOWED_NODE_ENVS[0];
 
     const envKeys = getEnvKeys(env);
