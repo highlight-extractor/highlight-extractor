@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { InputLabel } from '@material-ui/core';
@@ -8,7 +8,6 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { DropzoneArea } from 'material-ui-dropzone/dist';
 import { useStyles } from '../muiStyles';
@@ -22,7 +21,7 @@ type UploadProps = UploadState & UploadDispatchProps;
 // dropzone ref: https://www.npmjs.com/package/material-ui-dropzone
 const Upload = (props: UploadProps): React.ReactElement => {
     const classes = useStyles();
-    const { video, clipTime, imagesPerClip, mode, imageExtension, generateHighlights } = props;
+    const { video, totalClips, imagesPerClip, mode, imageExtension, generateHighlights } = props;
     const initialFiles: File[] = [];
     if (video) {
         initialFiles.push(video);
@@ -30,10 +29,10 @@ const Upload = (props: UploadProps): React.ReactElement => {
     const isSubmitDisabled = initialFiles.length === 0;
     const [values, setValues] = useState({
         initialFiles,
-        clipTime,
-        imagesPerClip,
+        totalClips: totalClips || 15,
+        imagesPerClip: imagesPerClip || 1,
         mode: mode || 'human_eye',
-        imageExtension,
+        imageExtension: imageExtension || 'jpg',
         isSubmitDisabled,
     });
 
@@ -41,11 +40,6 @@ const Upload = (props: UploadProps): React.ReactElement => {
     // TODO fix the error thrown when the file size is large
     const handleFileChange = (files: File[]): void =>
         setValues({ ...values, initialFiles: files, isSubmitDisabled: files.length === 0 });
-
-    const handleInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-        const { name, value } = event.currentTarget;
-        setValues({ ...values, [name]: Number(value) });
-    };
 
     // TODO unavoidable any because of material-ui
     // ref: https://material-ui.com/guides/typescript/#handling-value-and-event-handlers
@@ -59,7 +53,7 @@ const Upload = (props: UploadProps): React.ReactElement => {
         if (values.initialFiles.length === 1) {
             generateHighlights({
                 video: values.initialFiles[0],
-                clipTime: values.clipTime,
+                totalClips: values.totalClips,
                 imagesPerClip: values.imagesPerClip,
                 mode: values.mode,
                 imageExtension: values.imageExtension,
@@ -69,6 +63,23 @@ const Upload = (props: UploadProps): React.ReactElement => {
             setValues({ ...values, isSubmitDisabled: true });
         }
     };
+
+    const imagesPerClipOptions = [];
+    for (let i = 1; i <= 5; i += 1) {
+        imagesPerClipOptions.push(i);
+    }
+    const totalClipsOptions = [];
+    for (let i = 1; i <= 25; i += 1) {
+        totalClipsOptions.push(i);
+    }
+    const thresholdOptions = [];
+    for (let i = 50; i <= 95; i += 5) {
+        thresholdOptions.push(i);
+    }
+
+    useEffect(() => {
+        document.title = 'Hl-Ext: Upload';
+    }, []);
 
     return (
         <Container component="div" maxWidth="xs" className={classes.paper}>
@@ -92,34 +103,8 @@ const Upload = (props: UploadProps): React.ReactElement => {
                         />
                     </Grid>
                     <Grid item xs={12}>
-                        <TextField
-                            fullWidth
-                            id="clipTime"
-                            label="Clip Time"
-                            name="clipTime"
-                            type="number"
-                            helperText="Minimum time of each clip"
-                            inputProps={{ min: '1', step: '1' }}
-                            value={values.clipTime}
-                            onChange={handleInputChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            fullWidth
-                            id="imagesPerClip"
-                            label="Images Per Clip"
-                            name="imagesPerClip"
-                            type="number"
-                            helperText="Maximum number of images per each clip"
-                            inputProps={{ min: '1', step: '1' }}
-                            value={values.imagesPerClip}
-                            onChange={handleInputChange}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
                         <InputLabel shrink id="modeLabel">
-                            Mode
+                            Using
                         </InputLabel>
                         <Select
                             labelId="modeLabel"
@@ -129,14 +114,34 @@ const Upload = (props: UploadProps): React.ReactElement => {
                             value={values.mode}
                             onChange={handleSelectChange}
                         >
-                            <MenuItem value={'human_eye'}>Human Eye</MenuItem>
-                            <MenuItem value={'scene_detect'}>Scene Detect</MenuItem>
+                            <MenuItem value={'human_eye'}>human-eye</MenuItem>
+                            <MenuItem value={'scene_detect'}>scene-detect</MenuItem>
                         </Select>
-                        <FormHelperText>Prediction generation mode</FormHelperText>
+                        <FormHelperText>mode</FormHelperText>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <InputLabel shrink id="imagesPerClipLabel">
+                            show me
+                        </InputLabel>
+                        <Select
+                            labelId="imagesPerClipLabel"
+                            id="imagesPerClip"
+                            name="imagesPerClip"
+                            className={classes.select}
+                            value={values.imagesPerClip}
+                            onChange={handleSelectChange}
+                        >
+                            {imagesPerClipOptions.map(imagesPerClipOption => (
+                                <MenuItem key={imagesPerClipOption} value={imagesPerClipOption}>
+                                    {imagesPerClipOption}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                        <FormHelperText>image(s) per clip</FormHelperText>
                     </Grid>
                     <Grid item xs={12}>
                         <InputLabel shrink id="imageExtensionLabel">
-                            Image Extension
+                            of
                         </InputLabel>
                         <Select
                             labelId="imageExtensionLabel"
@@ -146,9 +151,29 @@ const Upload = (props: UploadProps): React.ReactElement => {
                             value={values.imageExtension}
                             onChange={handleSelectChange}
                         >
-                            <MenuItem value={'jpg'}>JPG</MenuItem>
+                            <MenuItem value={'jpg'}>jpg</MenuItem>
                         </Select>
-                        <FormHelperText>Expected type of images</FormHelperText>
+                        <FormHelperText>type.</FormHelperText>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <InputLabel shrink id="totalClipsLabel">
+                            Divide video into
+                        </InputLabel>
+                        <Select
+                            labelId="totalClipsLabel"
+                            id="totalClips"
+                            name="totalClips"
+                            className={classes.select}
+                            value={values.totalClips}
+                            onChange={handleSelectChange}
+                        >
+                            {totalClipsOptions.map(totalClipsOption => (
+                                <MenuItem key={totalClipsOption} value={totalClipsOption}>
+                                    {totalClipsOption}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                        <FormHelperText>clips.</FormHelperText>
                     </Grid>
                 </Grid>
                 <Button

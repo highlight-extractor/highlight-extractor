@@ -26,7 +26,7 @@ export interface ToastState {
 
 export interface UploadState {
     video: File;
-    clipTime: number;
+    totalClips: number;
     imagesPerClip: number;
     mode: string;
     imageExtension: string;

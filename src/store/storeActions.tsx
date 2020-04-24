@@ -33,9 +33,9 @@ export const callGenerateHighlights = (uploadData: UploadState, dispatch: Dispat
     const url = '/apis/highlights/generate';
     const method = 'POST';
 
-    const { video, clipTime, imagesPerClip, mode, imageExtension } = uploadData;
+    const { video, totalClips, imagesPerClip, mode, imageExtension } = uploadData;
     const data = new FormData();
-    data.append('clip_time', clipTime.toString());
+    data.append('total_clips', totalClips.toString());
     data.append('images_per_clip', imagesPerClip.toString());
     data.append('mode', mode);
     data.append('image_extension', imageExtension);

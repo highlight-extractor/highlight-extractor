@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { GridList } from '@material-ui/core';
+import { GridList, InputLabel } from '@material-ui/core';
 import Container from '@material-ui/core/Container';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import { useStyles } from '../muiStyles';
 import { AppState, HighlightsState, VideoHighlight } from '../store/appCommons';
@@ -25,91 +27,128 @@ const getTimeTakenString = (timeTaken: number): string => {
 };
 
 const Highlights = ({ predictions, timeTaken }: HighlightsState): React.ReactElement => {
-    const summaryImages = predictions.length;
-    const highlights = predictions;
-    const imagesPerRow = 0;
+    const getTopHighlights = (count: number): VideoHighlight[] => {
+        let hts = predictions;
+        hts.sort((a: VideoHighlight, b: VideoHighlight) => (a.meanScorePrediction < b.meanScorePrediction ? 1 : -1));
+        hts = hts.slice(0, count);
+        hts.sort((a: VideoHighlight, b: VideoHighlight) => (a.timestamp > b.timestamp ? 1 : -1));
+        return hts;
+    };
+
+    const imagesPerRow = 3;
+    let summaryImages = Math.min(predictions.length, 15);
+    summaryImages = Math.floor(summaryImages / 3);
+    summaryImages = summaryImages * 3;
+    const highlights = getTopHighlights(summaryImages);
     const [values, setValues] = useState({ summaryImages, imagesPerRow, highlights });
 
-    const handleInputChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-        const { name, value } = event.currentTarget;
+    // TODO unavoidable any because of material-ui
+    // ref: https://material-ui.com/guides/typescript/#handling-value-and-event-handlers
+    const handleSelectChange = (event: any): void => {
+        const { name, value } = event.target;
         if (name === 'summaryImages') {
-            let hts = predictions;
-            hts.sort((a: VideoHighlight, b: VideoHighlight) =>
-                a.meanScorePrediction < b.meanScorePrediction ? 1 : -1,
-            );
-            hts = hts.slice(0, Number(value));
-            hts.sort((a: VideoHighlight, b: VideoHighlight) => (a.timestamp > b.timestamp ? 1 : -1));
+            const hts = getTopHighlights(Number(value));
             setValues({ ...values, summaryImages: Number(value), highlights: hts });
         } else {
             setValues({ ...values, imagesPerRow: Number(value) });
         }
     };
 
+    const summaryImagesOptions = [];
+    for (let i = 1; i <= predictions.length; i += 1) {
+        summaryImagesOptions.push(i);
+    }
+    const imagesPerRowOptions = [];
+    for (let i = 0; i <= 4; i += 1) {
+        imagesPerRowOptions.push(i);
+    }
+
+    useEffect(() => {
+        document.title = 'Hl-Ext: Highlights';
+    }, []);
+
     const classes = useStyles();
-    const summaryImagesLimit = predictions.length;
-    const helpText = `number of images to display (1 - ${summaryImagesLimit.toString()})`;
     return (
-        <Container component="main" maxWidth="md">
-            <div className={classes.root}>
-                <Grid container className={classes.gridContainer} justify="center" spacing={2}>
-                    <Grid item>
-                        <TextField
-                            fullWidth
-                            id="summaryImages"
-                            label="Summary Images"
-                            name="summaryImages"
-                            type="number"
-                            helperText={helpText}
-                            inputProps={{ min: '1', max: summaryImagesLimit.toString(), step: '1' }}
-                            value={values.summaryImages}
-                            onChange={handleInputChange}
-                        />
-                    </Grid>
-                    <Grid item>
-                        <TextField
-                            fullWidth
-                            id="imagesPerRow"
-                            label="View (per row)"
-                            name="imagesPerRow"
-                            type="number"
-                            helperText="0 for horizontal scroll"
-                            inputProps={{ min: '0', max: values.highlights.length.toString(), step: '1' }}
-                            value={values.imagesPerRow}
-                            onChange={handleInputChange}
-                        />
-                    </Grid>
+        <Container component="div" maxWidth="md" className={classes.paper}>
+            <Typography component="h1" variant="h5">
+                Highlights
+            </Typography>
+            <Grid container className={classes.gridContainer} justify="center" spacing={2}>
+                <Grid item md={4} xs={8}>
+                    <InputLabel shrink id="summaryImagesLabel">
+                        Show me top
+                    </InputLabel>
+                    <Select
+                        labelId="summaryImagesLabel"
+                        id="summaryImages"
+                        name="summaryImages"
+                        className={classes.select}
+                        value={values.summaryImages}
+                        onChange={handleSelectChange}
+                    >
+                        {summaryImagesOptions.map(summaryImagesOption => (
+                            <MenuItem key={summaryImagesOption} value={summaryImagesOption}>
+                                {summaryImagesOption}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    <FormHelperText>out of {predictions.length} images</FormHelperText>
                 </Grid>
-                <Grid container className={classes.gridContainer} spacing={2}>
-                    <Grid item xs={12}>
-                        <GridList
-                            className={classes.gridList}
-                            style={values.imagesPerRow === 0 ? { flexWrap: 'nowrap' } : {}}
-                        >
-                            {values.highlights.map(highlight => (
-                                <Highlight
-                                    key={highlight.timestamp}
-                                    highlight={highlight}
-                                    width={values.imagesPerRow === 0 ? 80 : 100 / values.imagesPerRow}
-                                />
-                            ))}
-                        </GridList>
-                    </Grid>
+                <Grid item md={4} xs={8}>
+                    <InputLabel shrink id="imagesPerRowLabel">
+                        in
+                    </InputLabel>
+                    <Select
+                        labelId="imagesPerRowLabel"
+                        id="imagesPerRow"
+                        name="imagesPerRow"
+                        className={classes.select}
+                        value={values.imagesPerRow}
+                        onChange={handleSelectChange}
+                    >
+                        {imagesPerRowOptions.map(imagesPerRowOption => (
+                            <MenuItem key={imagesPerRowOption} value={imagesPerRowOption}>
+                                {imagesPerRowOption == 0
+                                    ? 'horizontal'
+                                    : imagesPerRowOption == 1
+                                    ? 'vertical'
+                                    : `${imagesPerRowOption} columns`}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    <FormHelperText>view.</FormHelperText>
                 </Grid>
-                <Grid
-                    container
-                    className={classes.gridContainer}
-                    direction="column"
-                    alignItems="center"
-                    justify="center"
-                    spacing={2}
-                >
-                    <Grid item xs={12}>
-                        <Typography component="span" variant="body2">
-                            Server extracted highlights in {getTimeTakenString(timeTaken)}.
-                        </Typography>
-                    </Grid>
+            </Grid>
+            <Grid container className={classes.gridContainer} spacing={2}>
+                <Grid item xs={12}>
+                    <GridList
+                        className={classes.gridList}
+                        style={values.imagesPerRow === 0 ? { flexWrap: 'nowrap' } : {}}
+                    >
+                        {values.highlights.map(highlight => (
+                            <Highlight
+                                key={highlight.timestamp}
+                                highlight={highlight}
+                                width={values.imagesPerRow === 0 ? 80 : 100 / values.imagesPerRow}
+                            />
+                        ))}
+                    </GridList>
                 </Grid>
-            </div>
+            </Grid>
+            <Grid
+                container
+                className={classes.gridContainer}
+                direction="column"
+                alignItems="center"
+                justify="center"
+                spacing={2}
+            >
+                <Grid item xs={12}>
+                    <Typography component="span" variant="body2">
+                        Server extracted highlights in {getTimeTakenString(timeTaken)}.
+                    </Typography>
+                </Grid>
+            </Grid>
         </Container>
     );
 };
